@@ -1,0 +1,47 @@
+/* Sorting Visualizer Animations and Layout */
+
+.visualizer-stage {
+    min-height: 380px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 24px 16px 8px 16px;
+    background: radial-gradient(circle at bottom, rgba(30, 58, 138, 0.08) 0%, transparent 70%);
+}
+
+.dark .visualizer-stage {
+    background: radial-gradient(circle at bottom, rgba(30, 58, 138, 0.25) 0%, transparent 70%);
+}
+
+/* Comparing pulsation */
+@keyframes comparePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+}
+
+.comparing {
+    animation: comparePulse 0.8s infinite;
+}
+
+/* Swapping glow */
+@keyframes swapGlow {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.swapping {
+    animation: swapGlow 0.4s ease-in-out;
+}
+
+/* Partition division line */
+.partition-boundary {
+    border-right: 2px dashed #8B5CF6;
+}

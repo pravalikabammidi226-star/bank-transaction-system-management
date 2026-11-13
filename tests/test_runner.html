@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Algorithm & Test Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../js/algorithms/mergeSort.js"></script>
+    <script src="../js/algorithms/quickSort.js"></script>
+    <script src="../js/algorithms/visualizerEngine.js"></script>
+    <script src="../js/data/sampleTransactions.js"></script>
+    <script src="../js/data/store.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 p-8 font-mono text-sm">
+    <div class="max-w-3xl mx-auto space-y-6">
+        <h1 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>🛡️</span> Bank Transaction DSA Test Suite Runner
+        </h1>
+        <div id="testSummary" class="p-4 rounded-xl bg-slate-800 border border-slate-700 text-xs">
+            Running automated unit tests...
+        </div>
+        <div id="testLogs" class="space-y-2"></div>
+    </div>
+
+    <script>
+        const logsContainer = document.getElementById('testLogs');
+        const summary = document.getElementById('testSummary');
+        let passed = 0;
+        let failed = 0;
+
+        function assert(condition, message) {
+            const div = document.createElement('div');
+            div.className = 'p-2.5 rounded-lg text-xs flex items-center justify-between border ' + 
+                (condition ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300' : 'bg-rose-950/40 border-rose-800 text-rose-300');
+            div.innerHTML = `<span>${condition ? '✓ PASS' : '✗ FAIL'}: ${message}</span>`;
+            logsContainer.appendChild(div);
+            if (condition) passed++; else failed++;
+        }
+
+        try {
+            // 1. Merge Sort - Amount Ascending
+            const resMergeAsc = MergeSort.sort(sampleTransactions, { key: 'amount', order: 'asc' });
+            let mergeAscSorted = true;
+            for (let i = 0; i < resMergeAsc.sorted.length - 1; i++) {
+                if (resMergeAsc.sorted[i].amount > resMergeAsc.sorted[i + 1].amount) mergeAscSorted = false;
+            }
+            assert(mergeAscSorted && resMergeAsc.sorted.length === sampleTransactions.length, `MergeSort: Amount ASC (60 items in ${resMergeAsc.metrics.executionTimeMs}ms, ${resMergeAsc.metrics.comparisons} comparisons)`);
+
+            // 2. Merge Sort - Amount Descending
+            const resMergeDesc = MergeSort.sort(sampleTransactions, { key: 'amount', order: 'desc' });
+            let mergeDescSorted = true;
+            for (let i = 0; i < resMergeDesc.sorted.length - 1; i++) {
+                if (resMergeDesc.sorted[i].amount < resMergeDesc.sorted[i + 1].amount) mergeDescSorted = false;
+            }
+            assert(mergeDescSorted, `MergeSort: Amount DESC (60 items, ${resMergeDesc.metrics.comparisons} comparisons)`);
+
+            // 3. Quick Sort - Amount Ascending
+            const resQuickAsc = QuickSort.sort(sampleTransactions, { key: 'amount', order: 'asc' });
+            let quickAscSorted = true;
+            for (let i = 0; i < resQuickAsc.sorted.length - 1; i++) {
+                if (resQuickAsc.sorted[i].amount > resQuickAsc.sorted[i + 1].amount) quickAscSorted = false;
+            }
+            assert(quickAscSorted && resQuickAsc.sorted.length === sampleTransactions.length, `QuickSort: Amount ASC (60 items in ${resQuickAsc.metrics.executionTimeMs}ms, ${resQuickAsc.metrics.comparisons} comparisons)`);
+
+            // 4. Quick Sort - Amount Descending
+            const resQuickDesc = QuickSort.sort(sampleTransactions, { key: 'amount', order: 'desc' });
+            let quickDescSorted = true;
+            for (let i = 0; i < resQuickDesc.sorted.length - 1; i++) {
+                if (resQuickDesc.sorted[i].amount < resQuickDesc.sorted[i + 1].amount) quickDescSorted = false;
+            }
+            assert(quickDescSorted, `QuickSort: Amount DESC (60 items, ${resQuickDesc.metrics.comparisons} comparisons)`);
+
+            // 5. Date Sort - Oldest to Newest
+            const resMergeDateAsc = MergeSort.sort(sampleTransactions, { key: 'date', order: 'asc' });
+            let dateAscSorted = true;
+            for (let i = 0; i < resMergeDateAsc.sorted.length - 1; i++) {
+                if (new Date(resMergeDateAsc.sorted[i].date).getTime() > new Date(resMergeDateAsc.sorted[i + 1].date).getTime()) dateAscSorted = false;
+            }
+            assert(dateAscSorted, 'MergeSort: Date ASC (Oldest to Newest)');
+
+            // 6. Date Sort - Newest to Oldest
+            const resQuickDateDesc = QuickSort.sort(sampleTransactions, { key: 'date', order: 'desc' });
+            let dateDescSorted = true;
+            for (let i = 0; i < resQuickDateDesc.sorted.length - 1; i++) {
+                if (new Date(resQuickDateDesc.sorted[i].date).getTime() < new Date(resQuickDateDesc.sorted[i + 1].date).getTime()) dateDescSorted = false;
+            }
+            assert(dateDescSorted, 'QuickSort: Date DESC (Newest to Oldest)');
+
+            // 7. Frequency Sort
+            const testStore = new TransactionStore();
+            const freqMap = testStore.getFrequencyMap('category');
+            const resFreqDesc = MergeSort.sort(sampleTransactions, { key: 'frequency', order: 'desc', frequencyMap });
+            let freqDescSorted = true;
+            for (let i = 0; i < resFreqDesc.sorted.length - 1; i++) {
+                const f1 = freqMap[resFreqDesc.sorted[i].category] || 0;
+                const f2 = freqMap[resFreqDesc.sorted[i + 1].category] || 0;
+                if (f1 < f2) freqDescSorted = false;
+            }
+            assert(freqDescSorted, 'MergeSort: Category Frequency DESC (Highest Frequency first)');
+
+            // 8. Visualizer Engine Step Generation
+            const mergeSteps = VisualizerEngine.generateMergeSortSteps(sampleTransactions.slice(0, 10), { key: 'amount', order: 'asc' });
+            assert(mergeSteps.length > 10 && mergeSteps[mergeSteps.length - 1].type === 'done', `VisualizerEngine: MergeSort generated ${mergeSteps.length} discrete animated steps`);
+
+            const quickSteps = VisualizerEngine.generateQuickSortSteps(sampleTransactions.slice(0, 10), { key: 'amount', order: 'asc' });
+            assert(quickSteps.length > 10 && quickSteps[quickSteps.length - 1].type === 'done', `VisualizerEngine: QuickSort generated ${quickSteps.length} discrete animated steps`);
+
+            // 9. Store CRUD test
+            const initialCount = testStore.getAll().length;
+            const added = testStore.add({
+                accountHolder: "Test Verification User",
+                type: "Deposit",
+                amount: 99999,
+                date: new Date().toISOString(),
+                category: "Salary",
+                status: "Completed"
+            });
+            assert(testStore.getAll().length === initialCount + 1, 'TransactionStore: Add new transaction');
+
+            testStore.update(added.id, { amount: 88888 });
+            assert(testStore.getById(added.id).amount === 88888, 'TransactionStore: Update transaction');
+
+            testStore.delete(added.id);
+            assert(testStore.getAll().length === initialCount, 'TransactionStore: Delete transaction');
+
+            // 10. Large Dataset Stress Benchmark (1,000 items)
+            const stressDataset = testStore.generateRandomDataset(1000);
+            const t0 = performance.now();
+            const resMergeStress = MergeSort.sort(stressDataset, { key: 'amount', order: 'asc' });
+            const mergeTime = performance.now() - t0;
+            const t1 = performance.now();
+            const resQuickStress = QuickSort.sort(stressDataset, { key: 'amount', order: 'asc' });
+            const quickTime = performance.now() - t1;
+
+            assert(resMergeStress.sorted.length === 1000 && resQuickStress.sorted.length === 1000, 
+                `Stress Test: 1,000 Transactions sorted in Merge: ${mergeTime.toFixed(2)}ms (${resMergeStress.metrics.comparisons} cmps), Quick: ${quickTime.toFixed(2)}ms (${resQuickStress.metrics.comparisons} cmps)`);
+
+        } catch (e) {
+            assert(false, `Unexpected Exception: ${e.message}`);
+        }
+
+        summary.className = failed === 0 ? 'p-4 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 font-bold' : 'p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 font-bold';
+        summary.innerHTML = failed === 0 
+            ? `🎉 ALL ${passed} AUTOMATED TESTS PASSED! No regressions found.`
+            : `⚠️ ${failed} tests failed out of ${passed + failed}.`;
+    </script>
+</body>
+</html>
